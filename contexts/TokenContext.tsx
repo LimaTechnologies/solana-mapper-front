@@ -4,12 +4,18 @@ import type React from "react"
 import { createContext, useState, useContext, useEffect } from "react"
 import type { ITokenData } from "@/types/token"
 import { useFilters, type Filters } from "./FilterContext"
-
+import axios from "axios"
 interface TokenContextType {
     tokens: ITokenData[]
     filteredTokens: ITokenData[]
     fetchTokens: () => Promise<void>
+    getTokensToEvaluate: () => Promise<string[]>
+    evaluateTokens: (data: { token: string; rating: number }) => Promise<void>
 }
+
+const axiosInstance = await axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+})
 
 const TokenContext = createContext<TokenContextType | undefined>(undefined)
 
@@ -29,6 +35,15 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     useEffect(() => {
         fetchTokens()
+
+        const newTimeout = setTimeout(() => {
+            fetchTokens()
+        }, 200)
+
+        if (timeout) {
+            clearTimeout(timeout)
+            saveTimeout(newTimeout)
+        }
     }, [])
 
     const fetchTokens = async () => {
@@ -51,16 +66,30 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch (error) {
             console.error("Error fetching tokens:", error)
         }
+    }
 
-        const newTimeout = setTimeout(() => {
-            fetchTokens()
-        })
+    const getTokensToEvaluate = async () => {
+        const { data } = await axiosInstance.get("/tokens/eval")
 
-        if (timeout) {
-            clearTimeout(timeout)
-            saveTimeout(newTimeout)
+        return data
+    }
+
+    const evaluateTokens = async ({ token, rating }: {
+        token: string
+        rating: number
+    }) => {
+        try {
+            await axiosInstance.post("/tokens/eval", {
+                token,
+                rating,
+            })
+        } catch (error) {
+            console.error("Error evaluating tokens:", error)
         }
     }
 
-    return <TokenContext.Provider value={{ tokens, filteredTokens, fetchTokens }}>{children}</TokenContext.Provider>
+    return <TokenContext.Provider value={{
+        tokens, filteredTokens,
+        fetchTokens, getTokensToEvaluate, evaluateTokens
+    }}>{children}</TokenContext.Provider>
 }

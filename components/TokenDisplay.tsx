@@ -14,7 +14,7 @@ export default function TokenDisplay() {
     const [isLoading, setIsLoading] = useState(false)
 
     const kings = filteredTokens.sort((a, b) => b.sol_reserve - a.sol_reserve).slice(0, 3)
-
+    
     const handleApplyFilters = async () => {
         setIsLoading(true)
         setIsLoading(false)

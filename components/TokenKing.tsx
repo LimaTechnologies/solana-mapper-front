@@ -25,7 +25,7 @@ export default function TokenKing({ token, position }: TokenKingProps) {
         <div
             className={`
                 flex flex-col items-center mx-4 ${containerOrder} transition-all duration-300 transform hover:scale-105 px-5 shadow-2xl rounded-md w-60 border-b-[0.5px] pt-5
-                ${position === 1 ? "border-yellow-500" : position === 2 ? "border-gray-300" : "border-yellow-700"}
+                ${position === 1 ? "border-yellow-500 mb-10" : position === 2 ? "border-gray-300" : "border-yellow-700"}
                 `}
         >
             <div className="flex-grow flex flex-col items-center justify-end pb-4">

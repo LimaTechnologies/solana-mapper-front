@@ -1,7 +1,13 @@
 import type { ITokenData } from "@/types/token"
 import Image from "next/image"
 
-export default function TokenList({ tokens }: { tokens: ITokenData[] }) {
+export default function TokenList({
+    tokens,
+    onClick
+}: {
+    tokens: ITokenData[],
+    onClick: (token: string) => void
+}) {
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg">
@@ -19,6 +25,7 @@ export default function TokenList({ tokens }: { tokens: ITokenData[] }) {
                         <tr
                             key={token.mint}
                             className={`border-b dark:border-gray-700 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900"}`}
+                            onClick={() => onClick(token.mint)}
                         >
                             <td className="px-4 py-2">
                                 <div className="flex items-center">

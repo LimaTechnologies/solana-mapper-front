@@ -11,6 +11,7 @@ interface TokenContextType {
     fetchTokens: () => Promise<void>
     getTokensToEvaluate: () => Promise<string[]>
     evaluateTokens: (data: { token: string; rating: number }) => Promise<void>
+    getTokenProgressStates: (mint: string) => Promise<any>
 }
 
 const axiosInstance = await axios.create({
@@ -66,6 +67,12 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }
 
+    const getTokenProgressStates = async (mint: string) => {
+        const { data } = await axiosInstance.get(`/tokens/states?mint=${mint}`)
+
+        return data
+    }
+
     const getTokensToEvaluate = async () => {
         const { data } = await axiosInstance.get("/tokens/eval")
 
@@ -88,6 +95,6 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return <TokenContext.Provider value={{
         tokens, filteredTokens,
-        fetchTokens, getTokensToEvaluate, evaluateTokens
+        fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates,
     }}>{children}</TokenContext.Provider>
 }

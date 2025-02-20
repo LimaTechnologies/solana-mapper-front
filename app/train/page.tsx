@@ -41,7 +41,7 @@ export default function EvaluatePage() {
                 <p className="text-lg mb-8 w-full">{currentToken || "Searching..."}</p>
                 <div id="dexscreener-embed" className="pb-10">
                     <iframe
-                        src={`https://dexscreener.com/solana/${currentToken}?embed=1&loadChartSettings=0&trades=0&chartLeftToolbar=0&chartTheme=dark&chartDefaultOnMobile=1&theme=dark&chartStyle=0&chartType=usd&interval=5`}
+                        src={`https://dexscreener.com/solana/${currentToken}?embed=1&loadChartSettings=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=1&trades=0&tabs=0`}
                         className="w-full h-[40rem]"
                     />
                 </div>

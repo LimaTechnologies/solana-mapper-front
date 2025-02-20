@@ -35,15 +35,6 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     useEffect(() => {
         fetchTokens()
-
-        const newTimeout = setTimeout(() => {
-            fetchTokens()
-        }, 200)
-
-        if (timeout) {
-            clearTimeout(timeout)
-            saveTimeout(newTimeout)
-        }
     }, [])
 
     const fetchTokens = async () => {
@@ -63,6 +54,13 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             setTokens(data)
             setFilteredTokens(data)
+
+            if (!timeout) {
+                const newTimeout = setTimeout(() => {
+                    fetchTokens()
+                }, 1000)
+                saveTimeout(newTimeout)
+            }
         } catch (error) {
             console.error("Error fetching tokens:", error)
         }

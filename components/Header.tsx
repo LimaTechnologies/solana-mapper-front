@@ -7,12 +7,15 @@ export default function Header() {
                 <Link href="/" className="text-2xl font-bold">
                     Token Kings
                 </Link>
-                <div className="text-2xl font-semibold">
+                <div className="text-2xl font-semibold flex gap-4">
                     <Link href="/" className="mr-4 hover:underline">
                         Home
                     </Link>
-                    <Link href="/train" className="hover:underline">
-                        Train
+                    <Link href="/train/token" className="hover:underline">
+                        Migrations
+                    </Link>
+                    <Link href="/train/progress" className="hover:underline">
+                        Progress
                     </Link>
                 </div>
             </nav>

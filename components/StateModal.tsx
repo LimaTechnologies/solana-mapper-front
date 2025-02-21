@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { useTokens } from "@/contexts/TokenContext"
 
-interface IStates {
+export interface IStates {
     statebenchmark: string
     buy_count: number
     sell_count: number
@@ -36,7 +36,7 @@ interface IStates {
     time_before_state: number
 }
 
-const StatItem = ({
+export const StatItem = ({
     icon,
     value,
     label,

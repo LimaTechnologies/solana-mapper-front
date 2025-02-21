@@ -5,6 +5,7 @@ import { createContext, useState, useContext, useEffect } from "react"
 import type { ITokenData } from "@/types/token"
 import { useFilters, type Filters } from "./FilterContext"
 import axios from "axios"
+import { IStates } from "@/components/StateModal"
 interface TokenContextType {
     tokens: ITokenData[]
     filteredTokens: ITokenData[]
@@ -12,6 +13,11 @@ interface TokenContextType {
     getTokensToEvaluate: () => Promise<string[]>
     evaluateTokens: (data: { token: string; rating: number }) => Promise<void>
     getTokenProgressStates: (mint: string) => Promise<any>
+    getProgressToEvaluate: () => Promise<{
+        mint: string,
+        progress: IStates[]
+    }>
+    evaluteProgress: (data: { mint: string, rating: number }) => Promise<void>
 }
 
 const axiosInstance = await axios.create({
@@ -46,12 +52,7 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     queryParams.append(key, value.toString())
                 }
             })
-
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tokens${queryParams.toString() ? `?${queryParams.toString()}` : ""}`)
-            if (!response.ok) {
-                throw new Error("Failed to fetch tokens")
-            }
-            const data = await response.json()
+            const { data } = await axiosInstance.get(`/tokens${queryParams.toString() ? `?${queryParams.toString()}` : ""}`)
 
             setTokens(data)
             setFilteredTokens(data)
@@ -68,13 +69,13 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const getTokenProgressStates = async (mint: string) => {
-        const { data } = await axiosInstance.get(`/tokens/states?mint=${mint}`)
+        const { data } = await axiosInstance.get(`/tokens/state?mint=${mint}`)
 
         return data
     }
 
     const getTokensToEvaluate = async () => {
-        const { data } = await axiosInstance.get("/tokens/eval")
+        const { data } = await axiosInstance.get("/tokens/eval/token")
 
         return data
     }
@@ -84,8 +85,28 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         rating: number
     }) => {
         try {
-            await axiosInstance.post("/tokens/eval", {
+            await axiosInstance.post("/tokens/eval/token", {
                 token,
+                rating,
+            })
+        } catch (error) {
+            console.error("Error evaluating tokens:", error)
+        }
+    }
+
+    const getProgressToEvaluate = async () => {
+        const { data } = await axiosInstance.get("/tokens/eval/state")
+
+        return data
+    }
+
+    const evaluteProgress = async ({ mint, rating }: {
+        mint: string
+        rating: number
+    }) => {
+        try {
+            await axiosInstance.post("/tokens/eval/state", {
+                mint,
                 rating,
             })
         } catch (error) {
@@ -95,6 +116,6 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return <TokenContext.Provider value={{
         tokens, filteredTokens,
-        fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates,
+        fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates, getProgressToEvaluate, evaluteProgress
     }}>{children}</TokenContext.Provider>
 }

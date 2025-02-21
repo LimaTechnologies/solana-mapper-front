@@ -28,11 +28,11 @@ interface FilterContextType {
 
 const defaultFilters: Filters = {
     migrated: "false",
-    minVolume: 20,
-    minSolReserve: 10,
+    minVolume: 0,
+    minSolReserve: 0,
     minDate: 30 * 60 * 1000,
-    minHolders: 25,
-    minTrades: 25,
+    minHolders: 0,
+    minTrades: 0,
 }
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined)

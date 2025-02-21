@@ -37,31 +37,6 @@ export default function TokenDisplay() {
                 <TokenKing token={kings[0]} position={1} />
                 <TokenKing token={kings[2]} position={3} />
             </div>
-            <div className="flex flex-col items-center space-y-4">
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-full flex items-center transition-all duration-300 transform hover:scale-105"
-                >
-                    {showFilters ? "Hide Filters" : "Change Filters"}
-                    {showFilters ? <ChevronUp className="ml-2" /> : <ChevronDown className="ml-2" />}
-                </button>
-                <div
-                    className={`w-full max-w-4xl transition-all duration-300 ease-in-out overflow-hidden ${showFilters ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
-                        }`}
-                >
-                    <FilterBar />
-                    <div className="flex justify-center mt-4">
-                        <button
-                            onClick={handleApplyFilters}
-                            disabled={isLoading}
-                            className={`bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 transform hover:scale-105 ${filtersChanged ? "animate-pulse" : ""
-                                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                        >
-                            {isLoading ? "Applying..." : "Apply Filters"}
-                        </button>
-                    </div>
-                </div>
-            </div>
             <TokenList
                 tokens={filteredTokens}
                 onClick={(token: string) => {

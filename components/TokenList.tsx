@@ -10,8 +10,8 @@ export default function TokenList({
 }) {
     return (
         <div className="overflow-x-auto">
-            <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                <thead className="bg-gray-200 dark:bg-gray-700">
+            <table className="min-w-full bg-gray-900 rounded-lg overflow-hidden shadow-lg">
+                <thead className="bg-gray-900">
                     <tr>
                         <th className="px-4 py-2 text-left">Token</th>
                         <th className="px-4 py-2 text-right">SOL Reserve</th>
@@ -24,7 +24,7 @@ export default function TokenList({
                     {tokens.map((token, index) => (
                         <tr
                             key={token.mint}
-                            className={`border-b dark:border-gray-700 ${index % 2 === 0 ? "bg-gray-50 dark:bg-gray-800" : "bg-white dark:bg-gray-900"}`}
+                            className={`border-b border-gray-700 ${index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"}`}
                             onClick={() => onClick(token.mint)}
                         >
                             <td className="px-4 py-2">

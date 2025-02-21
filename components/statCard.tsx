@@ -5,9 +5,11 @@ import millify from "millify"
 import { IStates } from "./StateModal"
 
 export function StatCard({
-    data
+    data,
+    warning
 }: {
-    data: IStates
+    data: IStates,
+    warning?: boolean
 }) {
     const formatNumber = (num: number) =>
         millify(num, {
@@ -16,7 +18,7 @@ export function StatCard({
         })
 
     return (
-        <Card className="w-full max-w-md font-mono bg-transparent text-white font-bold border-0 shadow-2xl p">
+        <Card className={`w-full max-w-md font-mono bg-transparent text-white font-bold border-0 shadow-2xl ${warning && "bg-gradient-to-t from-red-500/40 to-transparent"}`}>
             <CardHeader className="text-center w-max mx-auto">
                 <CardTitle className="text-lg font-semibold">LP {data.statebenchmark.split("_")[1]} MARK</CardTitle>
             </CardHeader>

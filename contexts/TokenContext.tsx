@@ -52,7 +52,7 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     queryParams.append(key, value.toString())
                 }
             })
-            const { data } = await axiosInstance.get(`/tokens${queryParams.toString() ? `?${queryParams.toString()}` : ""}`)
+            const { data } = await axiosInstance.get("/tokens")
 
             setTokens(data)
             setFilteredTokens(data)

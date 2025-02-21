@@ -13,6 +13,7 @@ export default function TokenList({
             <table className="min-w-full bg-gray-900 rounded-lg overflow-hidden shadow-lg">
                 <thead className="bg-gray-900">
                     <tr>
+                        <th className="px-4 py-2 text-left">Rating</th>
                         <th className="px-4 py-2 text-left">Token</th>
                         <th className="px-4 py-2 text-right">SOL Reserve</th>
                         <th className="px-4 py-2 text-right">Holders</th>
@@ -27,16 +28,21 @@ export default function TokenList({
                             className={`border-b border-gray-700 ${index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"}`}
                             onClick={() => onClick(token.mint)}
                         >
+                            <td>
+                                {
+                                    token.rating
+                                }
+                            </td>
                             <td className="px-4 py-2">
                                 <div className="flex items-center">
                                     <Image
                                         src={token.metadata?.image || "/placeholder.svg?height=30&width=30"}
-                                        alt={token.name}
+                                        alt={""}
                                         width={30}
                                         height={30}
                                         className="rounded-full mr-2"
                                     />
-                                    <div>
+                                    <div className="flex flex-col items-start">
                                         <p className="font-semibold">{token.name}</p>
                                         <p className="text-sm text-gray-500">{token.symbol}</p>
                                     </div>

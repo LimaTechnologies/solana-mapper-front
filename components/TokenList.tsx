@@ -9,11 +9,12 @@ export default function TokenList({
     onClick: (token: string) => void
 }) {
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-w-[80%]">
             <table className="min-w-full bg-gray-900 rounded-lg overflow-hidden shadow-lg">
                 <thead className="bg-gray-900">
                     <tr>
-                        <th className="px-4 py-2 text-left">Rating</th>
+                        <th className="px-4 py-2 text-center">Overall</th>
+                        <th className="px-4 py-2 text-center">Rating</th>
                         <th className="px-4 py-2 text-left">Token</th>
                         <th className="px-4 py-2 text-right">SOL Reserve</th>
                         <th className="px-4 py-2 text-right">Holders</th>
@@ -28,11 +29,17 @@ export default function TokenList({
                             className={`border-b border-gray-700 ${index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"}`}
                             onClick={() => onClick(token.mint)}
                         >
-                            <td>
+                            <td className={`px-4 py-2 ${token.overall == 2 ? "text-yellow-500" : token.overall == 3 ? "text-green-400" : "text-red-500"}`}>
+                                {
+                                    token.overall
+                                }
+                            </td>
+                            <td className={`px-4 py-2 ${token.rating == 2 ? "text-yellow-500" : token.rating == 3 ? "text-green-400" : "text-red-500"}`}>
                                 {
                                     token.rating
                                 }
                             </td>
+
                             <td className="px-4 py-2">
                                 <div className="flex items-center">
                                     <Image

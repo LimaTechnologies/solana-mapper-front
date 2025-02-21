@@ -25,7 +25,7 @@ export default function TokenDisplay() {
     }
 
     return (
-        <div className="space-y-8 min-h-screen flex flex-col items-center justify-center">
+        <div className="space-y-8 min-h-screen flex flex-col items-center justify-center w-full">
             <ProgressModal
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}

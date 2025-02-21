@@ -28,5 +28,6 @@ export interface ITokenData {
     migrated: boolean
     migratedAt?: number
     sol_reserve: number
-    rating: number
+    rating: number,
+    overall: number
 }

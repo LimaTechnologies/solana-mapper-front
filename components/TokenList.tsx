@@ -28,7 +28,7 @@ export default function TokenList({
                             className={`border-b border-gray-700 ${index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"}`}
                             onClick={() => onClick(token.mint)}
                         >
-                            <td className={`px-4 py-2 ${token.overall + token.rating == 4  ? "bg-yellow-500" : token.overall + token.rating == 6 ? "bg-green-400" : "bg-red-500"}`} />
+                            <td className={`px-4 py-2 ${token.overall === 2  ? "bg-yellow-500" : token.overall === 3 ? "bg-green-400" : "bg-red-500"}`} />
 
                             <td className="px-4 py-2">
                                 <div className="flex items-center">

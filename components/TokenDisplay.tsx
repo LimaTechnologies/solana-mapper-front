@@ -16,7 +16,19 @@ export default function TokenDisplay() {
     const [selectedToken, setSelectedToken] = useState<string>("")
     const [isOpen, setIsOpen] = useState(false)
 
-    const kings = filteredTokens.sort((a, b) => b.sol_reserve - a.sol_reserve).slice(0, 3)
+    const kings = [...filteredTokens]
+        .sort((a, b) => {
+            const ratingDifference = (b.overall * 2 + b.rating) - (a.overall * 2 + a.rating)
+            if (ratingDifference !== 0) {
+                return ratingDifference
+            }
+            return b.sol_reserve - a.sol_reserve
+        })
+        .slice(0, 3)
+
+    filteredTokens.sort((a, b) => {
+        return b.sol_reserve - a.sol_reserve
+    })
 
     const handleApplyFilters = async () => {
         setIsLoading(true)
@@ -40,8 +52,7 @@ export default function TokenDisplay() {
             <TokenList
                 tokens={filteredTokens}
                 onClick={(token: string) => {
-                    setSelectedToken(token)
-                    setIsOpen(true)
+                    window.open("https://neo.bullx.io/terminal?chainId=1399811149&address=" + token, "_blank")
                 }}
             />
         </div>

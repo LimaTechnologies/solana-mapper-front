@@ -1,5 +1,6 @@
 import type { ITokenData } from "@/types/token"
 import Image from "next/image"
+import Link from "next/link"
 
 interface TokenKingProps {
     token?: ITokenData
@@ -28,13 +29,23 @@ export default function TokenKing({ token, position }: TokenKingProps) {
                 ${position === 1 ? "border-yellow-500 mb-10" : position === 2 ? "border-gray-300" : "border-yellow-700"}
                 `}
         >
-            <div className="flex-grow flex flex-col items-center justify-end pb-4">
+            <button
+                className="flex-grow flex flex-col items-center justify-end pb-4"
+                onClick={() => {
+                    navigator.clipboard.writeText(token.mint).then(() => {
+                        alert("Mint address copied to clipboard!");
+                    }).catch(err => {
+                        console.error("Failed to copy mint address: ", err);
+                    });
+                }}
+            >
                 <Image
                     src={token.metadata?.image || "/placeholder.svg?height=80&width=80"}
                     alt={token.name || "Token"}
                     width={80}
                     height={80}
                     className="rounded-full border-4 border-white shadow-lg"
+
                 />
                 <h2 className="text-2xl font-bold flex-wrap text-center text-white mt-2">{token.name || "Unknown Token"}</h2>
                 <p className="text-lg0">{token.symbol || "N/A"}</p>
@@ -45,7 +56,7 @@ export default function TokenKing({ token, position }: TokenKingProps) {
                     <p className="text-sm">Volume: {token.volume?.toFixed(2) || "0.00"}</p>
                     <p className="text-sm">Trades: {token.tradeCount || 0}</p>
                 </div>
-            </div>
+            </button>
             <div className={`w-40 ${podiumHeight} ${podiumColor} rounded-t-lg flex justify-center pb-2 items-center`}>
                 <span className="text-5xl font-bold text-white">{position}</span>
             </div>

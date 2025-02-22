@@ -19,6 +19,12 @@ interface TokenContextType {
         rating_overall: number
     }>
     evaluteProgress: (data: { mint: string, rating: number }) => Promise<void>
+    getProgressToRevaluate: () => Promise<{
+        mint: string,
+        progress: IStates[],
+        rating_overall: number
+    }>
+    revaluteProgress: (data: { mint: string, rating: number }) => Promise<void>
 }
 
 const axiosInstance = await axios.create({
@@ -101,6 +107,26 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return data
     }
 
+    const getProgressToRevaluate = async () => {
+        const { data } = await axiosInstance.get("/tokens/reval/state")
+
+        return data
+    }
+
+    const revaluteProgress = async ({ mint, rating }: {
+        mint: string
+        rating: number
+    }) => {
+        try {
+            await axiosInstance.post("/tokens/reval/state", {
+                mint,
+                rating,
+            })
+        } catch (error) {
+            console.error("Error evaluating tokens:", error)
+        }
+    }
+
     const evaluteProgress = async ({ mint, rating }: {
         mint: string
         rating: number
@@ -117,6 +143,7 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return <TokenContext.Provider value={{
         tokens, filteredTokens,
-        fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates, getProgressToEvaluate, evaluteProgress
+        fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates, getProgressToEvaluate, evaluteProgress,
+        getProgressToRevaluate, revaluteProgress
     }}>{children}</TokenContext.Provider>
 }

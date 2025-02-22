@@ -77,7 +77,7 @@ export default function EvaluatePage() {
                         />
                     ))}
                 </div>
-                <div>
+                <div className="flex items-center justify-center text-lg py-4">
                     AI Rating: {aiRating}
                 </div>
                 <ScrollArea className="w-full">

@@ -14,7 +14,7 @@ export default function TokenList({
                 <thead className="bg-gray-900">
                     <tr>
                         <th className="px-1 py-2 text-center">Overral</th>
-                        <th className="px-1 py-2 text-left">Rating</th>
+                        <th className="px-1 py-2 text-center">Rating</th>
                         <th className="px-4 py-2 text-left">Token</th>
                         <th className="px-4 py-2 text-right">SOL Reserve</th>
                         <th className="px-4 py-2 text-right">Holders</th>

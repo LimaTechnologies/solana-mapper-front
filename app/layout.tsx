@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { TokenProvider } from "@/contexts/TokenContext";
 import { FilterProvider } from "@/contexts/FilterContext";
+import { Analytics } from "@vercel/analytics/react"
 import Header from "@/components/Header";
 
 const inter = Inter({
@@ -26,6 +27,7 @@ export default function RootLayout({
 			<body
 				className={`${inter.variable} antialiased bg-blue-950 text-white`}
 			>
+				<Analytics />
 				<FilterProvider>
 					<TokenProvider>
 						<Header />

@@ -7,7 +7,7 @@ export default function Header() {
                 <Link href="/" className="text-2xl font-bold">
                     Token Kings
                 </Link>
-                <div className="text-2xl font-semibold flex gap-4">
+                {/* <div className="text-2xl font-semibold flex gap-4">
                     <Link href="/" className="mr-4 hover:underline">
                         Home
                     </Link>
@@ -17,7 +17,7 @@ export default function Header() {
                     <Link href="/train/progress" className="hover:underline">
                         Progress
                     </Link>
-                </div>
+                </div> */}
             </nav>
         </header>
     )

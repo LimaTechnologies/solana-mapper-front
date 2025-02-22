@@ -15,7 +15,8 @@ interface TokenContextType {
     getTokenProgressStates: (mint: string) => Promise<any>
     getProgressToEvaluate: () => Promise<{
         mint: string,
-        progress: IStates[]
+        progress: IStates[],
+        rating_overall: number
     }>
     evaluteProgress: (data: { mint: string, rating: number }) => Promise<void>
 }

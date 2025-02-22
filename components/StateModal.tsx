@@ -33,7 +33,8 @@ export interface IStates {
     maker_count: number
     holder_count: number
     timestamp: number
-    time_before_state: number
+    time_before_state: number,
+    rating_overall?: number
 }
 
 export const StatItem = ({

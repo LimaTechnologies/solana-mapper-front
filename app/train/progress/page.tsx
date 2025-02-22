@@ -15,6 +15,7 @@ export default function EvaluatePage() {
     const [stateData, setStateData] = useState<IStates[]>([])
     const [rating, setRating] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [aiRating, setAiRating] = useState(0)
 
     useEffect(() => {
         fetchTokensToEvaluate()
@@ -24,11 +25,13 @@ export default function EvaluatePage() {
         setLoading(true)
         const {
             mint,
-            progress
+            progress,
+            rating_overall
         } = await getProgressToEvaluate()
 
         setCurrentToken(mint)
         setStateData(progress)
+        setAiRating(rating_overall)
         setLoading(false)
         setRating(0)
     }
@@ -73,6 +76,9 @@ export default function EvaluatePage() {
                             onClick={() => handleRating(star)}
                         />
                     ))}
+                </div>
+                <div>
+                    AI Rating: {aiRating}
                 </div>
                 <ScrollArea className="w-full">
                     <div className="flex p-4 space-x-4">

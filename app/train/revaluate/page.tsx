@@ -10,7 +10,7 @@ import { StatCard } from "@/components/statCard"
 import * as compare from "are-objects-equals"
 
 export default function EvaluatePage() {
-    const { getProgressToEvaluate, evaluteProgress } = useTokens()
+    const { revaluteProgress, getProgressToRevaluate } = useTokens()
     const [currentToken, setCurrentToken] = useState<string>()
     const [stateData, setStateData] = useState<IStates[]>([])
     const [rating, setRating] = useState(0)
@@ -27,7 +27,7 @@ export default function EvaluatePage() {
             mint,
             progress,
             rating_overall
-        } = await getProgressToEvaluate()
+        } = await getProgressToRevaluate()
 
         setCurrentToken(mint)
         setStateData(progress)
@@ -40,7 +40,7 @@ export default function EvaluatePage() {
         setRating(value)
 
         if (currentToken) {
-            await evaluteProgress({
+            await revaluteProgress({
                 rating: value,
                 mint: currentToken,
             })

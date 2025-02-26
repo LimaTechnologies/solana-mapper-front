@@ -57,7 +57,7 @@ export default function EvaluatePage() {
                 </p>
                 <div id="dexscreener-embed" className="pb-10 flex items-center justify-center">
                     <iframe
-                        src={`https://dexscreener.com/solana/${currentToken}?embed=1&loadChartSettings=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=1&trades=0&tabs=0`}
+                        src={`https://dexscreener.com/solana/${currentToken}?embed=1&loadChartSettings=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=15&trades=0&tabs=0`}
                         className="w-[70%] h-[40rem]"
                     />
                 </div>

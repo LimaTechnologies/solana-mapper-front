@@ -17,6 +17,7 @@ export default function TokenList({
                         <th className="px-1 py-2 text-center">Rating</th>
                         <th className="px-4 py-2 text-left">Token</th>
                         <th className="px-4 py-2 text-right">SOL Reserve</th>
+                        <th className="px-4 py-2 text-right">TX Speed</th>
                         <th className="px-4 py-2 text-right">Holders</th>
                         <th className="px-4 py-2 text-right">Volume</th>
                         <th className="px-4 py-2 text-right">Trades</th>
@@ -47,6 +48,7 @@ export default function TokenList({
                                 </div>
                             </td>
                             <td className="px-4 py-2 text-right">{token.sol_reserve.toFixed(2)}</td>
+                            <td className="px-4 py-2 text-right">{(token.tradeCount / token.volume).toFixed(2)}</td>
                             <td className="px-4 py-2 text-right">{token.holdersCount}</td>
                             <td className="px-4 py-2 text-right">{token.volume.toFixed(2)}</td>
                             <td className="px-4 py-2 text-right">{token.tradeCount}</td>

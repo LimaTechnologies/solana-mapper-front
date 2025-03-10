@@ -25,6 +25,7 @@ interface TokenContextType {
         rating_overall: number
     }>
     revaluteProgress: (data: { mint: string, rating: number }) => Promise<void>
+    getRatedTokens: () => Promise<any[]>
 }
 
 const axiosInstance = await axios.create({
@@ -87,6 +88,12 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return data
     }
 
+    const getRatedTokens = async () => {
+        const { data } = await axiosInstance.get("/tokens/analytics")
+
+        return data
+    }
+
     const evaluateTokens = async ({ token, rating }: {
         token: string
         rating: number
@@ -144,6 +151,6 @@ export const TokenProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return <TokenContext.Provider value={{
         tokens, filteredTokens,
         fetchTokens, getTokensToEvaluate, evaluateTokens, getTokenProgressStates, getProgressToEvaluate, evaluteProgress,
-        getProgressToRevaluate, revaluteProgress
+        getProgressToRevaluate, revaluteProgress, getRatedTokens
     }}>{children}</TokenContext.Provider>
 }

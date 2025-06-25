@@ -18,11 +18,9 @@ export default function TokenDisplay() {
 
     const kings = [...filteredTokens]
         .sort((a, b) => {
-            const ratingDifference = (b.overall * 2 + b.rating) - (a.overall * 2 + a.rating)
-            if (ratingDifference !== 0) {
-                return ratingDifference
-            }
-            return b.sol_reserve - a.sol_reserve
+            const aScore = Math.floor((a.sol_reserve / a.holdersCount) - (a.holdersCount * a.volume / 75))
+            const bScore = Math.floor((b.sol_reserve / b.holdersCount) - (b.holdersCount * b.volume / 75))
+            return aScore - bScore // ascending: lowest value first
         })
         .slice(0, 3)
 

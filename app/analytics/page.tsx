@@ -1,526 +1,367 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from "@/components/ui/table"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from "@/components/ui/card"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { useState, useEffect, useMemo } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { AlertCircle, ArrowDownUp, Info } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
-import prettyMilliseconds from "pretty-ms"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useTokens } from "@/contexts/TokenContext"
 
-// Interfaces provided by the user
 export interface IStates {
-    statebenchmark: string;
-
-    buy_count: number;
-    sell_count: number;
-    tx_count: number;
-
-    total_sol_volume: number;
-    buy_volume: number;
-    sell_volume: number;
-
-    real_sol_reserves: number;
-
-    maker_count: number;
-    holder_count: number;
-    timestamp: number;
-    time_before_state: number;
-
-    state: number,
+    statebenchmark: string
+    buy_count: number
+    sell_count: number
+    tx_count: number
+    total_sol_volume: number
+    buy_volume: number
+    sell_volume: number
+    real_sol_reserves: number
+    maker_count: number
+    holder_count: number
+    timestamp: number
+    time_before_state: number
+    state: number
     mint: string
 }
 
-export interface ITokensInfo {
-    mint: string,
-    states: IStates[],
-    rating: 1 | 3
+export interface APIReturn {
+    mint: string
+    rating: number
+    states: IStates[]
 }
 
-// Define the type for aggregated data
-export type AggregatedData = {
-    state: number;
-    statebenchmark: string;
-    rating: number;
-    txCount: number;
-    buyCount: number;
-    sellCount: number;
-    totalSolVolume: number;
-    buyVolume: number;
-    sellVolume: number;
-    txSpeed: number;
-    realSolReserves: number;
-    makerCount: number;
-    avgMakerPerToken: number;
-    holderCount: number;
-    avgHolderPerToken: number;
-    avgTimeBeforeStateChange: number;
-    tokenCount: number;
-}
+export default function TokenAnalyticsTable() {
+    const { getRatedTokens } = useTokens() // Assuming this is already implemented
+    const [selectedState, setSelectedState] = useState<string>("all")
+    const [selectedMetricType, setSelectedMetricType] = useState<string>("all")
+    const [tokens, setTokens] = useState<APIReturn[]>([])
+    const [isLoading, setIsLoading] = useState(true)
 
-// Define the type for anomalies
-export type Anomaly = {
-    state: number;
-    metric: string;
-    value: number;
-    avg: number;
-}
-
-// Function to aggregate data by state
-const aggregateByState = (tokens: ITokensInfo[], selectedRating: string): AggregatedData[] => {
-    const stateMap = new Map<number, AggregatedData>()
-
-    // Filter tokens by rating if needed
-    const filteredTokens = selectedRating === "all"
-        ? tokens
-        : tokens.filter(token => token.rating === parseInt(selectedRating) as 1 | 3)
-
-    // Process each token and its states
-    filteredTokens.forEach(token => {
-        token.states.forEach(stateData => {
-            const state = stateData.state
-
-            if (!stateMap.has(state)) {
-                stateMap.set(state, {
-                    state,
-                    statebenchmark: stateData.statebenchmark,
-                    rating: token.rating,
-                    txCount: 0,
-                    buyCount: 0,
-                    sellCount: 0,
-                    totalSolVolume: 0,
-                    buyVolume: 0,
-                    sellVolume: 0,
-                    txSpeed: 0,
-                    realSolReserves: 0,
-                    makerCount: 0,
-                    avgMakerPerToken: 0,
-                    holderCount: 0,
-                    avgHolderPerToken: 0,
-                    avgTimeBeforeStateChange: 0,
-                    tokenCount: 0
-                })
-            }
-
-            const stateAgg = stateMap.get(state)!
-
-            // Accumulate values
-            stateAgg.txCount += stateData.tx_count
-            stateAgg.buyCount += stateData.buy_count
-            stateAgg.sellCount += stateData.sell_count
-            stateAgg.totalSolVolume += stateData.total_sol_volume
-            stateAgg.buyVolume += stateData.buy_volume
-            stateAgg.sellVolume += stateData.sell_volume
-            stateAgg.realSolReserves += stateData.real_sol_reserves
-            stateAgg.makerCount += stateData.maker_count
-            stateAgg.holderCount += stateData.holder_count
-            stateAgg.avgTimeBeforeStateChange += stateData.time_before_state
-            stateAgg.tokenCount++
-        })
-    })
-
-    // Calculate averages and derived metrics
-    const result = Array.from(stateMap.values()).map(stateAgg => {
-        if (stateAgg.tokenCount > 0) {
-            stateAgg.realSolReserves /= stateAgg.tokenCount
-            stateAgg.avgMakerPerToken = stateAgg.makerCount / stateAgg.tokenCount
-            stateAgg.avgHolderPerToken = stateAgg.holderCount / stateAgg.tokenCount
-            stateAgg.avgTimeBeforeStateChange /= stateAgg.tokenCount
-        }
-
-        // Calculate transaction speed
-        stateAgg.txSpeed = stateAgg.totalSolVolume > 0
-            ? stateAgg.txCount / stateAgg.totalSolVolume
-            : 0
-
-        return stateAgg
-    })
-
-    return result
-}
-
-// Function to identify anomalies
-const findAnomalies = (data: AggregatedData[]): Anomaly[] => {
-    if (!data.length) return []
-
-    const anomalies: Anomaly[] = []
-
-    // Calculate averages for key metrics
-    const avgTxCount = data.reduce((sum, row) => sum + row.txCount, 0) / data.length
-    const avgSolVolume = data.reduce((sum, row) => sum + row.totalSolVolume, 0) / data.length
-    const avgTxSpeed = data.reduce((sum, row) => sum + row.txSpeed, 0) / data.length
-
-    // Check for anomalies (values that deviate significantly from the average)
-    data.forEach(row => {
-        if (row.txCount > avgTxCount * 1.5) {
-            anomalies.push({ state: row.state, metric: 'Transaction Count', value: row.txCount, avg: avgTxCount })
-        }
-        if (row.totalSolVolume > avgSolVolume * 1.5) {
-            anomalies.push({ state: row.state, metric: 'SOL Volume', value: row.totalSolVolume, avg: avgSolVolume })
-        }
-        if (row.txSpeed > avgTxSpeed * 1.5) {
-            anomalies.push({ state: row.state, metric: 'Transaction Speed', value: row.txSpeed, avg: avgTxSpeed })
-        }
-    })
-
-    return anomalies
-}
-
-export default function AnalyticsTable() {
-    const { getRatedTokens } = useTokens()
-    const [selectedRating, setSelectedRating] = useState("all")
-    const [sortColumn, setSortColumn] = useState("state")
-    const [sortDirection, setSortDirection] = useState("asc")
-    const [data, setData] = useState<AggregatedData[]>([])
-    const [anomalies, setAnomalies] = useState<Anomaly[]>([])
-    const [tokensData, setTokensData] = useState<ITokensInfo[]>([])
-
-    // Fetch data using the hook
     useEffect(() => {
-        getRatedTokens()
-            .then((data) => {
-                setTokensData(data)
-            })
-    }, [getRatedTokens])
-
-    // Process data when tokens data or filters change
-    useEffect(() => {
-        if (tokensData.length === 0) return
-
-        // Aggregate data by state
-        let aggregatedData = aggregateByState(tokensData, selectedRating)
-
-        // Sort data
-        aggregatedData.sort((a, b) => {
-            const aValue = a[sortColumn as keyof AggregatedData]
-            const bValue = b[sortColumn as keyof AggregatedData]
-
-            if (sortDirection === "asc") {
-                return aValue > bValue ? 1 : -1
-            } else {
-                return aValue < bValue ? 1 : -1
-            }
+        setIsLoading(true)
+        getRatedTokens().then((data) => {
+            setTokens(data)
+            setIsLoading(false)
         })
+    }, [])
 
-        setData(aggregatedData)
-        setAnomalies(findAnomalies(aggregatedData))
-    }, [tokensData, selectedRating, sortColumn, sortDirection])
+    // Define the metrics to display
+    const basicMetrics = [
+        { key: "buy_count", label: "Buy Count" },
+        { key: "sell_count", label: "Sell Count" },
+        { key: "tx_count", label: "Transaction Count" },
+        { key: "total_sol_volume", label: "Total SOL Volume" },
+        { key: "buy_volume", label: "Buy Volume" },
+        { key: "sell_volume", label: "Sell Volume" },
+        { key: "real_sol_reserves", label: "Real SOL Reserves" },
+        { key: "maker_count", label: "Maker Count" },
+        { key: "holder_count", label: "Holder Count" },
+    ]
 
-    const handleSort = (column: keyof AggregatedData | string) => {
-        if (sortColumn === column) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    const derivedMetrics = [
+        {
+            key: "transaction_speed",
+            label: "Transaction Speed",
+            calculate: (state: IStates) => (state.total_sol_volume > 0 ? state.tx_count / state.total_sol_volume : 0),
+        },
+        {
+            key: "average_transaction_size",
+            label: "Avg Transaction Size",
+            calculate: (state: IStates) => (state.tx_count > 0 ? state.total_sol_volume / state.tx_count : 0),
+        },
+        {
+            key: "buy_sell_ratio_count",
+            label: "Buy/Sell Ratio (Count)",
+            calculate: (state: IStates) => (state.sell_count > 0 ? state.buy_count / state.sell_count : 0),
+        },
+        {
+            key: "buy_sell_ratio_volume",
+            label: "Buy/Sell Ratio (Volume)",
+            calculate: (state: IStates) => (state.sell_volume > 0 ? state.buy_volume / state.sell_volume : 0),
+        },
+        {
+            key: "maker_holder_ratio",
+            label: "Maker/Holder Ratio",
+            calculate: (state: IStates) => (state.holder_count > 0 ? state.maker_count / state.holder_count : 0),
+        },
+    ]
+
+    const allMetrics = [...basicMetrics, ...derivedMetrics]
+
+    // Helper function to calculate median
+    const calculateMedian = (values: number[]): number | null => {
+        if (values.length === 0) return null
+
+        const sorted = [...values].sort((a, b) => a - b)
+        const middle = Math.floor(sorted.length / 2)
+
+        if (sorted.length % 2 === 0) {
+            return (sorted[middle - 1] + sorted[middle]) / 2
         } else {
-            setSortColumn(column)
-            setSortDirection("asc")
+            return sorted[middle]
         }
     }
 
-    const formatNumber = (num: number, decimals = 0) => {
-        return num.toLocaleString(undefined, {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
+    // Process the data to calculate averages and medians by state and rating
+    const processedData = useMemo(() => {
+        // Initialize the result object
+        const result: Record<
+            number,
+            Record<
+                string,
+                Record<
+                    number,
+                    {
+                        avg: number | null
+                        median: number | null
+                        values: number[]
+                    }
+                >
+            >
+        > = {}
+
+        // Initialize states from 10 to 80 in steps of 10
+        for (let state = 10; state <= 80; state += 10) {
+            result[state] = {}
+
+            // Initialize metrics for each rating
+            allMetrics.forEach((metric) => {
+                result[state][metric.key] = {
+                    1: { avg: null, median: null, values: [] },
+                    3: { avg: null, median: null, values: [] },
+                }
+            })
+        }
+
+        // Process each token
+        tokens.forEach((token) => {
+            const { rating, states } = token
+
+            // Only process tokens with rating 1 or 3
+            if (rating !== 1 && rating !== 3) return
+
+            // Process each state for the token
+            states.forEach((stateData) => {
+                const { state } = stateData
+
+                // Only process states from 10 to 80 in steps of 10
+                if (state < 10 || state > 80 || state % 10 !== 0) return
+
+                // Update basic metrics
+                basicMetrics.forEach((metric) => {
+                    const value = stateData[metric.key as keyof IStates] as number
+                    result[state][metric.key][rating].values.push(value)
+                })
+
+                // Update derived metrics
+                derivedMetrics.forEach((metric) => {
+                    const value = metric.calculate(stateData)
+                    result[state][metric.key][rating].values.push(value)
+                })
+            })
         })
+
+        // Calculate averages and medians
+        for (let state = 10; state <= 80; state += 10) {
+            allMetrics.forEach((metric) => {
+                ;[1, 3].forEach((rating) => {
+                    const values = result[state][metric.key][rating].values
+
+                    if (values.length > 0) {
+                        // Calculate average
+                        const sum = values.reduce((acc, val) => acc + val, 0)
+                        result[state][metric.key][rating].avg = sum / values.length
+
+                        // Calculate median
+                        result[state][metric.key][rating].median = calculateMedian(values)
+                    }
+                })
+            })
+        }
+
+        return result
+    }, [tokens])
+
+    // Filter the data based on selected state and metric type
+    const filteredData = useMemo(() => {
+        const states =
+            selectedState === "all" ? Array.from({ length: 8 }, (_, i) => (i + 1) * 10) : [Number.parseInt(selectedState)]
+
+        const metrics =
+            selectedMetricType === "all" ? allMetrics : selectedMetricType === "basic" ? basicMetrics : derivedMetrics
+
+        return { states, metrics }
+    }, [selectedState, selectedMetricType])
+
+    // Format a value for display
+    const formatValue = (value: number | null): string => {
+        if (value === null) return "N/A"
+        return value.toFixed(2)
+    }
+
+    // Get unique states for the select dropdown
+    const states = Array.from({ length: 8 }, (_, i) => (i + 1) * 10)
+
+    if (isLoading) {
+        return (
+            <Card className="w-full">
+                <CardHeader>
+                    <CardTitle>Token Analytics Comparison</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="w-full h-[400px]" />
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
         <Card className="w-full">
             <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <CardTitle>Token Analytics by State</CardTitle>
-                        <CardDescription>
-                            Comparing patterns between tokens with different ratings
-                        </CardDescription>
+                <CardTitle className="flex items-center justify-between">
+                    <span>Token Analytics Comparison</span>
+                    <div className="flex gap-2">
+                        <Badge variant="outline" className="bg-green-100 text-green-800">
+                            Rating 1
+                        </Badge>
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                            Rating 3
+                        </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Filter by Rating:</span>
-                        <Select value={selectedRating} onValueChange={setSelectedRating}>
-                            <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="All Ratings" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Ratings</SelectItem>
-                                <SelectItem value="1">Rating 1</SelectItem>
-                                <SelectItem value="3">Rating 3</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+                </CardTitle>
             </CardHeader>
             <CardContent>
-                {anomalies.length > 0 && (
-                    <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md">
-                        <div className="flex items-center gap-2 mb-2">
-                            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500" />
-                            <h3 className="font-medium">Anomalies Detected</h3>
-                        </div>
-                        <ul className="text-sm space-y-1">
-                            {anomalies.slice(0, 3).map((anomaly, i) => (
-                                <li key={i}>
-                                    State {anomaly.state}: {anomaly.metric} ({formatNumber(anomaly.value, 2)}) is significantly higher than average ({formatNumber(anomaly.avg, 2)})
-                                </li>
-                            ))}
-                            {anomalies.length > 3 && (
-                                <li className="text-muted-foreground">
-                                    + {anomalies.length - 3} more anomalies detected
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-                )}
+                <Tabs defaultValue="table" className="w-full">
+                    <TabsList className="mb-4">
+                        <TabsTrigger value="table">Table View</TabsTrigger>
+                        <TabsTrigger value="summary">Summary</TabsTrigger>
+                    </TabsList>
 
-                <div className="rounded-md border overflow-x-auto">
-                    <Table>
-                        <TableCaption>
-                            Aggregate analysis by state for tokens with ratings {selectedRating === "all" ? "1 and 3" : selectedRating}
-                        </TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[80px]">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 p-0 h-auto font-medium"
-                                        onClick={() => handleSort("state")}
-                                    >
-                                        State
-                                        {sortColumn === "state" && (
-                                            <ArrowDownUp className="h-3 w-3" />
-                                        )}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="flex items-center gap-1 p-0 h-auto font-medium"
-                                            onClick={() => handleSort("rating")}
-                                        >
-                                            Rating
-                                            {sortColumn === "rating" && (
-                                                <ArrowDownUp className="h-3 w-3" />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 p-0 h-auto font-medium"
-                                        onClick={() => handleSort("txCount")}
-                                    >
-                                        Transactions
-                                        {sortColumn === "txCount" && (
-                                            <ArrowDownUp className="h-3 w-3" />
-                                        )}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="flex items-center gap-1 p-0 h-auto font-medium"
-                                                    onClick={() => handleSort("buyCount")}
-                                                >
-                                                    Buy/Sell
-                                                    {sortColumn === "buyCount" && (
-                                                        <ArrowDownUp className="h-3 w-3" />
-                                                    )}
-                                                    <Info className="h-3 w-3 text-muted-foreground" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Buy and Sell Transaction Counts</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 p-0 h-auto font-medium"
-                                        onClick={() => handleSort("totalSolVolume")}
-                                    >
-                                        SOL Volume
-                                        {sortColumn === "totalSolVolume" && (
-                                            <ArrowDownUp className="h-3 w-3" />
-                                        )}
-                                    </Button>
-                                </TableHead>
-                                <TableHead>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="flex items-center gap-1 p-0 h-auto font-medium"
-                                                    onClick={() => handleSort("txSpeed")}
-                                                >
-                                                    TX Speed
-                                                    {sortColumn === "txSpeed" && (
-                                                        <ArrowDownUp className="h-3 w-3" />
-                                                    )}
-                                                    <Info className="h-3 w-3 text-muted-foreground" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Transaction Count / Total SOL Volume</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </TableHead>
-                                <TableHead>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="flex items-center gap-1 p-0 h-auto font-medium"
-                                                    onClick={() => handleSort("makerCount")}
-                                                >
-                                                    Makers
-                                                    {sortColumn === "makerCount" && (
-                                                        <ArrowDownUp className="h-3 w-3" />
-                                                    )}
-                                                    <Info className="h-3 w-3 text-muted-foreground" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Total Maker Count / Avg per Token</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </TableHead>
-                                <TableHead>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="flex items-center gap-1 p-0 h-auto font-medium"
-                                                    onClick={() => handleSort("holderCount")}
-                                                >
-                                                    Holders
-                                                    {sortColumn === "holderCount" && (
-                                                        <ArrowDownUp className="h-3 w-3" />
-                                                    )}
-                                                    <Info className="h-3 w-3 text-muted-foreground" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Total Holder Count / Avg per Token</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </TableHead>
-                                <TableHead>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="flex items-center gap-1 p-0 h-auto font-medium whitespace-nowrap"
-                                        onClick={() => handleSort("avgTimeBeforeStateChange")}
-                                    >
-                                        Avg Time Before Change
-                                        {sortColumn === "avgTimeBeforeStateChange" && (
-                                            <ArrowDownUp className="h-3 w-3" />
-                                        )}
-                                    </Button>
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((row, i) => (
-                                <TableRow key={i} className={i % 2 === 0 ? "bg-muted/50" : ""}>
-                                    <TableCell className="font-medium">{row.state}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={row.rating === 1 ? "outline" : "default"}>
-                                            {row.rating}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{formatNumber(row.txCount)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="text-green-600 dark:text-green-500">{formatNumber(row.buyCount)}</span>
-                                            <span className="text-red-600 dark:text-red-500">{formatNumber(row.sellCount)}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span>{formatNumber(row.totalSolVolume, 2)}</span>
-                                            <div className="flex gap-1 text-xs text-muted-foreground">
-                                                <span className="text-green-600 dark:text-green-500">{formatNumber(row.buyVolume, 1)}</span>
-                                                <span>/</span>
-                                                <span className="text-red-600 dark:text-red-500">{formatNumber(row.sellVolume, 1)}</span>
+                    <TabsContent value="table" className="space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                            <div className="flex flex-col gap-2">
+                                <label htmlFor="state-select" className="text-sm font-medium">
+                                    Filter by State
+                                </label>
+                                <Select value={selectedState} onValueChange={setSelectedState}>
+                                    <SelectTrigger id="state-select" className="w-[180px]">
+                                        <SelectValue placeholder="Select state" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All States</SelectItem>
+                                        {states.map((state) => (
+                                            <SelectItem key={state} value={state.toString()}>
+                                                State {state}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <label htmlFor="metric-type-select" className="text-sm font-medium">
+                                    Filter by Metric Type
+                                </label>
+                                <Select value={selectedMetricType} onValueChange={setSelectedMetricType}>
+                                    <SelectTrigger id="metric-type-select" className="w-[180px]">
+                                        <SelectValue placeholder="Select metric type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Metrics</SelectItem>
+                                        <SelectItem value="basic">Basic Metrics</SelectItem>
+                                        <SelectItem value="derived">Derived Metrics</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="rounded-md border overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead rowSpan={2}>State</TableHead>
+                                        <TableHead colSpan={2}>Metric</TableHead>
+                                        <TableHead colSpan={2}>Rating 1</TableHead>
+                                        <TableHead colSpan={2}>Rating 3</TableHead>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Avg</TableHead>
+                                        <TableHead>Median</TableHead>
+                                        <TableHead>Avg</TableHead>
+                                        <TableHead>Median</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredData.states.map((state) =>
+                                        filteredData.metrics.map((metric, index) => (
+                                            <TableRow key={`${state}-${metric.key}`}>
+                                                {index === 0 && <TableCell rowSpan={filteredData.metrics.length}>{state}</TableCell>}
+                                                <TableCell>{metric.label}</TableCell>
+                                                <TableCell>
+                                                    {metric.key.startsWith("buy_") ||
+                                                        metric.key.startsWith("sell_") ||
+                                                        metric.key.endsWith("_count") ||
+                                                        metric.key.endsWith("_volume")
+                                                        ? "Basic"
+                                                        : "Derived"}
+                                                </TableCell>
+                                                <TableCell className="bg-green-50/30">
+                                                    {formatValue(processedData[state][metric.key][1].avg)}
+                                                </TableCell>
+                                                <TableCell className="bg-green-50/30">
+                                                    {formatValue(processedData[state][metric.key][1].median)}
+                                                </TableCell>
+                                                <TableCell className="bg-blue-50/30">
+                                                    {formatValue(processedData[state][metric.key][3].avg)}
+                                                </TableCell>
+                                                <TableCell className="bg-blue-50/30">
+                                                    {formatValue(processedData[state][metric.key][3].median)}
+                                                </TableCell>
+                                            </TableRow>
+                                        )),
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="summary">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-base">Key Insights</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li>Compare metrics between tokens with Rating 1 and Rating 3 across different states</li>
+                                        <li>View both average and median values for more robust statistical analysis</li>
+                                        <li>Analyze both basic metrics (counts, volumes) and derived metrics (ratios, averages)</li>
+                                        <li>Filter by specific state or metric type for detailed analysis</li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-base">Metrics Explained</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2">
+                                        {derivedMetrics.map((metric) => (
+                                            <div key={metric.key} className="border-b pb-2 last:border-0">
+                                                <div className="font-medium">{metric.label}</div>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{formatNumber(row.txSpeed, 4)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span>{formatNumber(row.makerCount)}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {formatNumber(row.avgMakerPerToken, 1)} avg/token
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span>{formatNumber(row.holderCount)}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {formatNumber(row.avgHolderPerToken, 1)} avg/token
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{prettyMilliseconds(row.avgTimeBeforeStateChange * 1000, { compact: true })}</TableCell>
-                                </TableRow>
-                            ))}
-                            {data.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={10} className="h-24 text-center">
-                                        No data available
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
         </Card>
     )
